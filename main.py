@@ -513,11 +513,17 @@ def get_critical_points(points, stocks, thresholds):
 # ================== 7. STREAMLIT INTERFACE ==================
 
 def main():
-    st.set_page_config(
-        page_title="Waste Collection Optimization",
-        page_icon="🗑️",
-        layout="wide"
-    )
+
+    # Load CSS
+    with open("style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+    #st.set_page_config(
+       # page_title="Waste Collection Optimization",
+        #page_icon="🗑️",
+        #layout="wide"
+    #)
     
     # Initialize session state
     if 'optimization_data' not in st.session_state:
@@ -537,6 +543,11 @@ def main():
     st.title("🗑️ Waste Collection Route Optimization")
     st.markdown("Optimize waste collection routes using genetic algorithms")
     
+   
+
+   
+
+
     # Sidebar controls
     with st.sidebar:
         st.header("Parameters")
@@ -546,6 +557,7 @@ def main():
         run_button = st.button("Run Optimization", type="primary")
         reset_button = st.button("Reset Results")
     
+
     if reset_button:
         st.session_state.optimization_data = {
             'complete': False,

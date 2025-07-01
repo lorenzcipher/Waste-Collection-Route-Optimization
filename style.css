@@ -1,0 +1,122 @@
+/* styles.css */
+/* Main page styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333333;
+}
+
+/* Header styling */
+.stApp header h1 {
+    color: #00ff0d !important;  /* Dark green */
+    font-weight: 700;
+}
+
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background-color: #00ff0d;
+    border-right: 1px solid #e0e0e0;
+}
+
+[data-testid="stSidebar"] h1 {
+    color: #2e7d32;
+}
+
+/* Button styling */
+.stButton button {
+    background-color: #0cf118;
+    color: white;
+    border-radius: 4px;
+    border: none;
+    padding: 8px 16px;
+    font-weight: 500;
+}
+
+.stButton button:hover {
+    background-color: #1b5e20;
+    color: white;
+}
+
+/* Slider styling */
+.stSlider {
+    color: #2e7d32;
+}
+
+/* Tab styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 10px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    padding: 8px 16px;
+    border-radius: 4px 4px 0 0;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: #2e7d32 !important;
+    color: white !important;
+}
+
+/* Metric card styling */
+[data-testid="metric-container"] {
+    background-color: #e8f5e9;
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid #2e7d32;
+}
+
+/* Expander styling */
+[data-testid="stExpander"] {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+[data-testid="stExpander"] summary {
+    background-color: #e8f5e9;
+    padding: 10px 15px;
+    border-radius: 8px 8px 0 0;
+    font-weight: 500;
+    color: #2e7d32;
+}
+
+/* Progress bar styling */
+.stProgress > div > div > div {
+    background-color: #2e7d32;
+}
+
+/* Dataframe styling */
+.stDataFrame {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+/* Error message styling */
+.stAlert {
+    border-radius: 8px;
+}
+
+/* Map container styling */
+.stDeckGlJsonChart {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Custom success message */
+.custom-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 4px solid #2e7d32;
+}
+
+/* Custom error message */
+.custom-error {
+    background-color: #ffebee;
+    color: #c62828;
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 4px solid #c62828;
+}

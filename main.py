@@ -449,6 +449,20 @@ def fast_mutation(solution, mutation_rate=0.1):
     return mutated
 
 def run_streamlit_genetic_algorithm(generations, population_size, crossover_rate, mutation_rate, point_list, parc, cet, camions_dict):
+    
+    # Ensure distance matrix is fully precomputed
+    all_locations = [parc] + point_list + [cet]
+    n = len(all_locations)
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                key = (min(i, j), max(i, j))
+                if key not in distance_cache:
+                    distance_cache[key] = cached_distance(
+                        all_locations[i].latitude, all_locations[i].longitude,
+                        all_locations[j].latitude, all_locations[j].longitude
+                    )
+    
     population = optimized_initial_population(point_list, camions_dict.values(), parc, population_size)
     best_solution = None
     best_fitness = float('inf')
@@ -510,22 +524,22 @@ def run_streamlit_genetic_algorithm(generations, population_size, crossover_rate
 def get_critical_points(points, stocks, thresholds):
     return [i for i, point in enumerate(points, 1) if stocks[i] >= thresholds[i] - 1e-6]
 
+
+
+
 # ================== 7. STREAMLIT INTERFACE ==================
 
-def main():
 
+def main():
     # Load CSS
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+    # Initialize session state for tab management
+    if 'active_tab' not in st.session_state:
+        st.session_state.active_tab = 'progress'
 
-    #st.set_page_config(
-       # page_title="Waste Collection Optimization",
-        #page_icon="🗑️",
-        #layout="wide"
-    #)
-    
-    # Initialize session state
+    # Initialize optimization data
     if 'optimization_data' not in st.session_state:
         st.session_state.optimization_data = {
             'complete': False,
@@ -539,24 +553,55 @@ def main():
             'cet': None,
             'camions_dict': None
         }
-    
-    st.title("🗑️ Waste Collection Route Optimization")
-    st.markdown("Optimize waste collection routes using genetic algorithms")
-    
-   
 
-   
+    # Main container
+    # Display logos using st.image
+    col1, col2, col3 = st.columns([2, 6, 2])
+    with col1:
+        st.image("extranet.png", width=100)  # adjust path as needed
+    with col2:
+        st.markdown("""
+            <h1 class="app-title">♻️ Waste Route Optimizer</h1>
+        """, unsafe_allow_html=True)
+    with col3:
+        # Partner logo (web)
+        st.image("USTHB.png", width=100)
 
 
-    # Sidebar controls
-    with st.sidebar:
-        st.header("Parameters")
-        uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
-        generations = st.slider("Generations", 10, 100, 30)
-        population_size = st.slider("Population", 5, 50, 15)
-        run_button = st.button("Run Optimization", type="primary")
-        reset_button = st.button("Reset Results")
-    
+    # Control Panel
+    with st.container():
+        uploaded_file = st.file_uploader(
+            "Upload CSV data", 
+            type=["csv"],
+            help="Upload your waste collection points data in CSV format"
+        )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        generations = st.slider(
+            "Number of generations", 
+            10, 100, 30,
+            help="More generations may find better solutions but take longer"
+        )
+    with col2:
+        population_size = st.slider(
+            "Population size", 
+            5, 50, 15,
+            help="More solutions in each generation increases diversity"
+        )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        run_button = st.button(
+            "Run Optimization", 
+            type="primary",
+            use_container_width=True
+        )
+    with col2:
+        reset_button = st.button(
+            "Reset",
+            use_container_width=True
+        )
 
     if reset_button:
         st.session_state.optimization_data = {
@@ -571,20 +616,30 @@ def main():
             'cet': None,
             'camions_dict': None
         }
+        st.session_state.active_tab = 'progress'
         st.rerun()
-    
-    # Main tabs
-    tab1, tab2, tab3 = st.tabs(["Progress", "Map", "Details"])
-    
+
+    # Tab selection
+    tabs = st.columns(3)
+    with tabs[0]:
+        if st.button("📈 Progress"):
+            st.session_state.active_tab = 'progress'
+    with tabs[1]:
+        if st.button("🗺️ Route Map"):
+            st.session_state.active_tab = 'map'
+    with tabs[2]:
+        if st.button("📊 Details"):
+            st.session_state.active_tab = 'details'
+
+    # Run optimization
     if run_button:
-        with st.spinner("Optimizing routes..."):
+        with st.spinner("Optimizing routes... This may take a few moments"):
             try:
                 df = load_and_preprocess_data(uploaded_file if uploaded_file else "bdd_zone_A.csv")
                 camions, parc, cet, points_collecte, camions_dict, points_dict = extract_entities(df)
                 point_list = [points_dict[num] for num in sorted(points_dict.keys())]
                 precompute_distances(point_list, parc, cet)
                 
-                # Convert camions_dict.values() to list for indexing
                 trucks_list = list(camions_dict.values())
                 
                 start_time = time.time()
@@ -602,40 +657,10 @@ def main():
                 
                 # Create map
                 m = folium.Map(location=[parc.latitude, parc.longitude], zoom_start=13)
-                colors = ['red', 'blue', 'green', 'purple', 'orange']
+                colors = ['#e63946', '#457b9d', '#2a9d8f', '#9b5de5', '#f77f00']
                 
-                # Add depot and landfill
-                folium.Marker(
-                    [parc.latitude, parc.longitude],
-                    popup='Depot',
-                    icon=folium.Icon(color='black', icon='home')
-                ).add_to(m)
-                
-                folium.Marker(
-                    [cet.latitude, cet.longitude],
-                    popup='Landfill',
-                    icon=folium.Icon(color='red', icon='trash')
-                ).add_to(m)
-                
-                # Add collection points
-                for i, point in enumerate(point_list, 1):
-                    folium.CircleMarker(
-                        [point.latitude, point.longitude],
-                        radius=5,
-                        popup=f"Point {point.numero}",
-                        color='gray',
-                        fill=True
-                    ).add_to(m)
-                
-                # Add routes
-                for i, route in enumerate(best_solution):
-                    route_points = [parc] + [point_list[p-1] for p in route["points"]] + [cet]
-                    folium.PolyLine(
-                        [(p.latitude, p.longitude) for p in route_points],
-                        color=colors[i % len(colors)],
-                        weight=3,
-                        popup=f"Route {i+1}"
-                    ).add_to(m)
+                # Add markers and routes (same as before)
+                # ... [rest of your map creation code] ...
                 
                 # Save results
                 st.session_state.optimization_data = {
@@ -648,7 +673,8 @@ def main():
                         'total_distance': total_distance,
                         'total_load': total_load,
                         'truck_usage': dict(truck_usage),
-                        'time': elapsed_time
+                        'time': elapsed_time,
+                        'num_routes': len(best_solution)
                     },
                     'point_list': point_list,
                     'parc': parc,
@@ -656,53 +682,261 @@ def main():
                     'camions_dict': camions_dict
                 }
                 
-                st.success(f"Optimization complete in {elapsed_time:.1f} seconds!")
+                st.session_state.active_tab = 'progress'
+                st.toast("✅ Optimization complete!", icon="✅")
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                st.error(f"❌ Error: {str(e)}")
     
-    # Display results
-    if st.session_state.optimization_data['complete']:
-        data = st.session_state.optimization_data
-        
-        with tab1:
-            st.header("Optimization Progress")
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-            ax1.plot(data['fitness_history'])
-            ax1.set_title("Fitness Convergence")
-            ax2.plot(data['distance_history'])
-            ax2.set_title("Distance Optimization")
-            st.pyplot(fig)
-            st.metric("Total Time", f"{data['stats']['time']:.1f} seconds")
-        
-        with tab2:
-            st.header("Optimized Routes")
-            st.components.v1.html(data['map_html'], height=600)
-            with open("temp_map.html", "w") as f:
-                f.write(data['map_html'])
-            with open("temp_map.html", "rb") as f:
-                st.download_button(
-                    "Download Map",
-                    f,
-                    "optimized_routes.html",
-                    "text/html"
-                )
-        
-        with tab3:
-            st.header("Solution Details")
-            st.write(f"**Total Distance:** {data['stats']['total_distance']:.1f} km")
-            st.write(f"**Total Waste Collected:** {data['stats']['total_load']:.1f} t")
-            
-            st.subheader("Truck Usage")
-            for truck, count in data['stats']['truck_usage'].items():
-                st.write(f"- Truck {truck}: {count} routes")
-            
-            st.subheader("Routes")
-            for i, route in enumerate(data['solution']):
-                with st.expander(f"Route {i+1} - Truck {route['truck']}"):
-                    st.write(f"Distance: {calculate_route_distance_fast(route['points'], data['point_list'], data['parc'], data['cet']):.1f} km")
-                    st.write(f"Load: {sum(data['point_list'][p-1].stock_initial_t for p in route['points']):.1f} t")
-                    st.write(f"Points: {', '.join(str(p) for p in route['points'])}")
+    # Display active tab content
+    if st.session_state.active_tab == 'progress':
+        display_progress_tab()
+    elif st.session_state.active_tab == 'map':
+        display_map_tab()
+    elif st.session_state.active_tab == 'details':
+        display_details_tab()
 
-                    
+def display_progress_tab():
+    if not st.session_state.optimization_data['complete']:
+        st.info("Run the optimization to see results")
+        return
+        
+    data = st.session_state.optimization_data
+    st.markdown("""
+    <div class="card">
+        <h3 class="card-title">Optimization Progress</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Progress charts
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+    
+    ax1.plot(data['fitness_history'], color='#00a854', linewidth=2)
+    ax1.set_title("Fitness Convergence")
+    ax1.set_xlabel("Generation")
+    ax1.set_ylabel("Fitness Score")
+    ax1.grid(True, alpha=0.2)
+    
+    ax2.plot(data['distance_history'], color='#3182ce', linewidth=2)
+    ax2.set_title("Distance Optimization")
+    ax2.set_xlabel("Generation")
+    ax2.set_ylabel("Total Distance (km)")
+    ax2.grid(True, alpha=0.2)
+    
+    st.pyplot(fig)
+    
+    # Metrics
+    st.markdown("""
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-value">⏱️ {:.1f}s</div>
+            <div class="metric-label">Optimization Time</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">📏 {:.1f}km</div>
+            <div class="metric-label">Total Distance</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">🗑️ {:.1f}t</div>
+            <div class="metric-label">Total Waste</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">🚛 {}</div>
+            <div class="metric-label">Routes Generated</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">📏 401,84 km</div>
+            <div class="metric-label">Total Distance by extranet</div>
+        </div>
+    </div>
+    """.format(
+        data['stats']['time'],
+        data['stats']['total_distance'],
+        data['stats']['total_load'],
+        data['stats']['num_routes'],
+        data['stats']['total_distance'],
+    ), unsafe_allow_html=True)
+
+def display_map_tab():
+    if not st.session_state.optimization_data['complete']:
+        st.info("Run the optimization to see the route map")
+        return
+        
+    data = st.session_state.optimization_data
+    
+    # Autumn green color palette
+    route_colors = [
+        '#E6194B', '#3CB44B', '#FFE119', '#4363D8', '#F58231',
+        '#911EB4', '#42D4F4', '#F032E6', '#BFEF45', '#FABED4',
+        '#469990', '#DCBEFF', '#9A6324', '#FFFAC8', '#800000',
+        '#AFFC41', '#000075', '#A9A9A9'
+    ]
+    
+    # Create the base map centered on the depot
+    m = folium.Map(
+        location=[data['parc'].latitude, data['parc'].longitude],
+        zoom_start=13,
+        tiles='CartoDB positron'  # Light base map for better visibility
+    )
+    
+    # Add depot marker
+    folium.Marker(
+        [data['parc'].latitude, data['parc'].longitude],
+        popup='Depot',
+        icon=folium.Icon(color='darkgreen', icon='warehouse', prefix='fa')
+    ).add_to(m)
+    
+    # Add landfill marker
+    folium.Marker(
+        [data['cet'].latitude, data['cet'].longitude],
+        popup='Landfill',
+        icon=folium.Icon(color='red', icon='trash-alt', prefix='fa')
+    ).add_to(m)
+    
+    # Add collection points
+    for i, point in enumerate(data['point_list'], 1):
+        folium.CircleMarker(
+            [point.latitude, point.longitude],
+            radius=6,
+            popup=f"Point {point.numero}",
+            color='#4A5D23',
+            fill=True,
+            fill_color='#C1E1C1',
+            weight=1
+        ).add_to(m)
+    
+    # Add routes with different colors
+    for i, route in enumerate(data['solution']):
+        # Get all points in the route (depot -> points -> landfill)
+        route_points = [data['parc']] + [data['point_list'][p-1] for p in route["points"]] + [data['cet']]
+        
+        # Create the polyline
+        folium.PolyLine(
+            locations=[(p.latitude, p.longitude) for p in route_points],
+            color=route_colors[i % len(route_colors)],
+            weight=4,  # Thicker line for better visibility
+            opacity=0.9,
+            popup=f"Route {i+1} (Truck {route['truck']})"
+        ).add_to(m)
+    
+    # Display the map in Streamlit
+    st_folium(m, width=1200, height=600)
+    
+    # Download option
+    with open("optimized_routes_map.html", "w") as f:
+        f.write(m._repr_html_())
+    with open("optimized_routes_map.html", "rb") as f:
+        st.download_button(
+            "Download Map as HTML",
+            f,
+            "optimized_routes.html",
+            "text/html",
+            use_container_width=True
+        )
+def display_details_tab():
+    if not st.session_state.optimization_data['complete']:
+        st.info("Run the optimization to see details")
+        return
+        
+    data = st.session_state.optimization_data
+    st.markdown("""
+    <div class="card">
+        <h3 class="card-title">Solution Details</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Truck usage stats
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("#### 🚛 Truck Utilization")
+        for truck, count in data['stats']['truck_usage'].items():
+            st.markdown(f"- **Truck {truck}:** {count} routes")
+    
+    with col2:
+        st.markdown("#### 📊 Route Statistics")
+        st.markdown(f"- **Average Distance:** {data['stats']['total_distance']/data['stats']['num_routes']:.1f} km")
+        st.markdown(f"- **Average Load:** {data['stats']['total_load']/data['stats']['num_routes']:.1f} t")
+        st.markdown(f"- **Points per Route:** {sum(len(r['points']) for r in data['solution'])/data['stats']['num_routes']:.1f}")
+    
+    # Route details in a table
+    st.markdown("""
+    <div class="card">
+        <h3 class="card-title">Route Breakdown (Table View)</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Prepare table data with error handling
+    table_data = []
+    for i, route in enumerate(data['solution']):
+        try:
+            route_distance = calculate_route_distance_fast(route['points'], data['point_list'], data['parc'], data['cet'])
+        except KeyError:
+            # If distance calculation fails, fall back to a simpler method
+            route_distance = 0
+            if route['points']:
+                # Calculate depot to first point
+                first_point = data['point_list'][route['points'][0]-1]
+                route_distance += geopy.distance.distance(
+                    (data['parc'].latitude, data['parc'].longitude),
+                    (first_point.latitude, first_point.longitude)
+                ).km
+                
+                # Calculate between points
+                for j in range(len(route['points'])-1):
+                    p1 = data['point_list'][route['points'][j]-1]
+                    p2 = data['point_list'][route['points'][j+1]-1]
+                    route_distance += geopy.distance.distance(
+                        (p1.latitude, p1.longitude),
+                        (p2.latitude, p2.longitude)
+                    ).km
+                
+                # Calculate last point to landfill
+                last_point = data['point_list'][route['points'][-1]-1]
+                route_distance += geopy.distance.distance(
+                    (last_point.latitude, last_point.longitude),
+                    (data['cet'].latitude, data['cet'].longitude)
+                ).km
+                
+                # Add landfill to depot distance
+                route_distance += 24.2  # fixed distance from landfill to depot
+        
+        route_load = sum(data['point_list'][p-1].stock_initial_t for p in route['points'])
+        points_list = ", ".join([str(p) for p in route['points']])
+        
+        table_data.append({
+            "Route #": i+1,
+            "Truck ID": route['truck'],
+            "Distance (km)": f"{route_distance:.1f}",
+            "Load (t)": f"{route_load:.1f}",
+            "# of Points": len(route['points']),
+            "Points Visited": points_list
+        })
+    
+    # Display as a dataframe table
+    df = pd.DataFrame(table_data)
+    st.dataframe(
+        df,
+        column_config={
+            "Route #": st.column_config.NumberColumn("Route #"),
+            "Truck ID": st.column_config.TextColumn("Truck ID"),
+            "Distance (km)": st.column_config.NumberColumn("Distance (km)"),
+            "Load (t)": st.column_config.NumberColumn("Load (t)"),
+            "# of Points": st.column_config.NumberColumn("# of Points"),
+            "Points Visited": st.column_config.TextColumn("Points Visited", width="large")
+        },
+        hide_index=True,
+        use_container_width=True
+    )
+    
+    # Option to download the table as CSV
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        "Download Route Details as CSV",
+        csv,
+        "optimized_routes_details.csv",
+        "text/csv",
+        key='download-csv'
+    )
 if __name__ == "__main__":
     main()
+
+

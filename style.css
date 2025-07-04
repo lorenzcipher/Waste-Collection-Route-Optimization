@@ -1,122 +1,271 @@
-/* styles.css */
-/* Main page styling */
+/* Modern Reset with Autumn Green Palette */
+:root {
+  --primary-green: #568203;   /* Military green */
+  --secondary-green: #8BA888;  /* Sage green */
+  --accent-green: #6B8E23;    /* Olive drab */
+  --light-green: #C1E1C1;     /* Light sage */
+  --dark-green: #4A5D23;      /* Deep forest green */
+  --warm-neutral: #F5F5DC;    /* Beige background */
+  --text-dark: #333333;
+  --text-medium: #666666;
+  --text-light: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Main styling */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333333;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-dark);
+  background-color: var(--warm-neutral);
+  line-height: 1.6;
 }
 
-/* Header styling */
-.stApp header h1 {
-    color: #00ff0d !important;  /* Dark green */
-    font-weight: 700;
+/* Container */
+.main-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
 }
 
-/* Sidebar styling */
-[data-testid="stSidebar"] {
-    background-color: #00ff0d;
-    border-right: 1px solid #e0e0e0;
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--secondary-green);
 }
 
-[data-testid="stSidebar"] h1 {
-    color: #2e7d32;
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-/* Button styling */
+.logo {
+  height: 50px;
+}
+
+.app-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin: 0;
+}
+
+.app-description {
+  color: var(--text-medium);
+  font-size: 0.95rem;
+}
+
+/* Control Panel */
+.control-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid var(--light-green);
+}
+
+.control-group {
+  margin-bottom: 1rem;
+}
+
+.control-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--dark-green);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Buttons */
 .stButton button {
-    background-color: #0cf118;
-    color: white;
-    border-radius: 4px;
-    border: none;
-    padding: 8px 16px;
-    font-weight: 500;
+  background-color: var(--primary-green) !important;
+  color: var(--text-light) !important;
+  border: none !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  width: 100% !important;
 }
 
 .stButton button:hover {
-    background-color: #1b5e20;
-    color: white;
+  background-color: var(--dark-green) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.btn-secondary {
+  background-color: #f0f0f0;
+  color: var(--text-dark);
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--light-green);
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-medium);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--primary-green);
+}
+
+.tab.active {
+  color: var(--primary-green);
+  border-bottom-color: var(--primary-green);
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--accent-green);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--dark-green);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Metrics */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid var(--light-green);
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: 0.25rem;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: var(--text-medium);
+}
+
+/* Map container */
+.map-container {
+  height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid var(--secondary-green);
+}
+
+/* Table styling */
+.stDataFrame {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+  margin-bottom: 1rem !important;
+  border: 1px solid var(--light-green) !important;
+}
+
+.stDataFrame th {
+  background-color: var(--light-green) !important;
+  color: var(--dark-green) !important;
+  font-weight: 600 !important;
+}
+
+.stDataFrame tr:hover {
+  background-color: rgba(193, 225, 193, 0.2) !important;
 }
 
 /* Slider styling */
-.stSlider {
-    color: #2e7d32;
+.stSlider .st-ae {
+  background-color: var(--primary-green) !important;
 }
 
-/* Tab styling */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 10px;
-}
-
-.stTabs [data-baseweb="tab"] {
-    padding: 8px 16px;
-    border-radius: 4px 4px 0 0;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-
-.stTabs [aria-selected="true"] {
-    background-color: #2e7d32 !important;
-    color: white !important;
-}
-
-/* Metric card styling */
-[data-testid="metric-container"] {
-    background-color: #e8f5e9;
-    border-radius: 8px;
-    padding: 15px;
-    border-left: 4px solid #2e7d32;
+.stSlider .st-af {
+  color: var(--dark-green) !important;
 }
 
 /* Expander styling */
-[data-testid="stExpander"] {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    margin-bottom: 12px;
+.stExpander {
+  border: 1px solid var(--light-green) !important;
+  border-radius: 8px !important;
+  margin-bottom: 1rem !important;
 }
 
-[data-testid="stExpander"] summary {
-    background-color: #e8f5e9;
-    padding: 10px 15px;
-    border-radius: 8px 8px 0 0;
-    font-weight: 500;
-    color: #2e7d32;
+.stExpander summary {
+  background-color: var(--light-green) !important;
+  color: var(--dark-green) !important;
 }
 
-/* Progress bar styling */
-.stProgress > div > div > div {
-    background-color: #2e7d32;
-}
-
-/* Dataframe styling */
-.stDataFrame {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-}
-
-/* Error message styling */
-.stAlert {
-    border-radius: 8px;
-}
-
-/* Map container styling */
-.stDeckGlJsonChart {
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-/* Custom success message */
-.custom-success {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border-radius: 8px;
-    padding: 12px;
-    border-left: 4px solid #2e7d32;
-}
-
-/* Custom error message */
-.custom-error {
-    background-color: #ffebee;
-    color: #c62828;
-    border-radius: 8px;
-    padding: 12px;
-    border-left: 4px solid #c62828;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .control-panel {
+    grid-template-columns: 1fr;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+  }
+  
+  .tabs {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  
+  .tab {
+    white-space: nowrap;
+    padding: 0.75rem 1rem;
+  }
 }
